@@ -1,0 +1,3 @@
+from tuks_timetable_generator import web_scraper, configuration
+
+web_scraper.download_and_parse_url(configuration.HATFIELD_TIMETABLE_URL)

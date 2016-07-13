@@ -31,24 +31,38 @@ class TimetableEntry(object):
     def is_tutorial(self):
         return self.lecture_number[0] == 'T'
 
+    def is_lecture(self):
+        return self.lecture_number[0] == 'L'
+
+    def is_practical(self):
+        return self.lecture_number[0] == 'P'
+
 
 class Module(object):
 
     module_name = None
     semester    = None
 
-    lectures   = []
-    tutorials  = []
-    practicals = []
-
     def __init__(self, name, semester):
+        self.lectures = []
+        self.tutorials = []
+        self.practicals = []
         self.module_name = name
         self.semester = semester
 
     def __str__(self):
         return "%s sem. %s: %s lectures, %s tuts and %s pracs" % (self.module_name, self.semester,
-                                                                  self.lectures.count(), self.tutorials.count(),
-                                                                  self.practicals.count())
+                                                                 len(self.lectures), len(self.tutorials),
+                                                                  len(self.practicals))
+
+    def add_timetable_entry(self, timetable_entry):
+        if timetable_entry.is_tutorial():
+            self.tutorials.append(timetable_entry)
+        elif timetable_entry.is_lecture():
+            self.lectures.append(timetable_entry)
+        elif timetable_entry.is_practical():
+            self.practicals.append(timetable_entry)
+
 
 
 

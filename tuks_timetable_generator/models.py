@@ -75,6 +75,8 @@ class Choice(object):
 
     def generate_children(self, choice_list, choice_index):
         if len(choice_list) <= choice_index:
+            # Leaf node. Time to navigate back up
+            print(self.temp_find_root())
             return None
         else:
             choice_item = choice_list[choice_index]
@@ -85,6 +87,11 @@ class Choice(object):
                 new_index = choice_index + 1
                 new_child.generate_children(choice_list, new_index)
 
+    def temp_find_root(self):
+        if self.parent == None:
+            return ""
+        else:
+            return self.currentChoice + self.parent.temp_find_root()
 
 
 class ChoiceListItem(object):

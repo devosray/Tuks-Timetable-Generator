@@ -52,9 +52,9 @@ module_list = temp_list
 rootNode = Choice(parent=None, currentChoice=None)
 
 choiceList = []
-item1 = ChoiceListItem(choices=['A', 'B'])
-item2 = ChoiceListItem(choices=['1', '2'])
-item3 = ChoiceListItem(choices=['X', 'Y'])
+item1 = ChoiceListItem(choices=['A', 'B', 'C'])
+item2 = ChoiceListItem(choices=['1', '2', '3'])
+item3 = ChoiceListItem(choices=['X', 'Y', 'Z'])
 choiceList.append(item1)
 choiceList.append(item2)
 choiceList.append(item3)

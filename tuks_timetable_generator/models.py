@@ -44,9 +44,11 @@ class Module(object):
     semester    = None
 
     def __init__(self, name, semester):
+        # These arrays contain TimetableEntries
         self.lectures = []
         self.tutorials = []
         self.practicals = []
+
         self.module_name = name
         self.semester = semester
 
@@ -64,5 +66,42 @@ class Module(object):
             self.practicals.append(timetable_entry)
 
 
+class Choice(object):
+
+    def __init__(self, parent, currentChoice):
+        self.parent = parent
+        self.currentChoice = currentChoice
+        self.children = []
+
+    def generate_children(self, choice_list, choice_index):
+        if len(choice_list) <= choice_index:
+            return None
+        else:
+            choice_item = choice_list[choice_index]
+            choice_item.reset_current_option()
+            while choice_item.has_more():
+                new_child = Choice(self, choice_item.get_next_choice())
+                self.children.append(new_child)
+                new_index = choice_index + 1
+                new_child.generate_children(choice_list, new_index)
 
 
+
+class ChoiceListItem(object):
+
+    def __init__(self, choices=[]):
+        self.options = choices
+        self.currentOption = -1
+
+    def get_next_choice(self):
+        if self.currentOption >= len(self.options)-1:
+            return None
+        else:
+            self.currentOption += 1
+            return self.options[self.currentOption]
+
+    def has_more(self):
+        return self.currentOption < len(self.options)-1
+
+    def reset_current_option(self):
+        self.currentOption = -1

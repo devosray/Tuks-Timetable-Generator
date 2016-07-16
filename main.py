@@ -1,22 +1,31 @@
 from tuks_timetable_generator import web_scraper, configuration
-from tuks_timetable_generator.models import Choice, ChoiceListItem, ModuleFilterItem, LectureGroupingEnum,\
-    LectureLanguageEnum, Counter
+from tuks_timetable_generator.models import Choice, ChoiceListItem, ModuleFilterItem, LectureGroupingEnum, \
+    LectureLanguageEnum, TimetableEntry, Counter
+
+from datetime import datetime
 
 print("Downloading and parsing latest timetable...")
-module_list = web_scraper.download_and_parse_url(configuration.HATFIELD_TIMETABLE_URL)
+#module_list = web_scraper.download_and_parse_url(configuration.HATFIELD_TIMETABLE_URL)
+module_list = web_scraper.parse_html(open("tempWrite.html"))
 
 print("Finished parsing timetable")
 
 # For testing purposes; demonstration list of modules to filter out
 # With this config there are 213840 options
 module_filter = [
-    ModuleFilterItem("PHY 124"),
-    ModuleFilterItem("WTW 124"),
-    ModuleFilterItem("ALL 121"),
-    ModuleFilterItem("OBS 124"),
-    ModuleFilterItem("COS 121", lecture_grouping=LectureGroupingEnum.group_by_lecture_number),
-    ModuleFilterItem("COS 110", lecture_grouping=LectureGroupingEnum.group_by_lecture_number),
-    ModuleFilterItem("STK 120", lecture_langauge=)
+    # ModuleFilterItem("PHY 124"),
+    # ModuleFilterItem("WTW 124"),
+    # ModuleFilterItem("ALL 121"),
+    # ModuleFilterItem("OBS 124"),
+    # ModuleFilterItem("COS 121", lecture_grouping=LectureGroupingEnum.group_by_lecture_number),
+    # ModuleFilterItem("COS 110", lecture_grouping=LectureGroupingEnum.group_by_lecture_number),
+    # ModuleFilterItem("STK 120", lecture_grouping=LectureGroupingEnum.group_by_lecture_number),
+
+    ModuleFilterItem("COS 110", lecture_langauge=LectureLanguageEnum.english, lecture_grouping=LectureGroupingEnum.group_by_lecture_number),
+    ModuleFilterItem("COS 222", lecture_langauge=LectureLanguageEnum.english, lecture_grouping=LectureGroupingEnum.group_by_lecture_number),
+    ModuleFilterItem("COS 226", lecture_langauge=LectureLanguageEnum.english, lecture_grouping=LectureGroupingEnum.group_by_lecture_number),
+    ModuleFilterItem("WTW 285", lecture_langauge=LectureLanguageEnum.english),
+
 ]
 
 for filter in module_filter:
@@ -61,6 +70,7 @@ rootNode = Choice(parent=None, currentChoice=None)
 # Generate list of choices based on selected modules and preference
 choiceList = []
 
+
 def generate_grouped_by_group_choices_from_array(lecture_array):
     group_choices = ChoiceListItem(choices=[])
     lecture_groups = dict()
@@ -97,7 +107,6 @@ def generate_grouped_by_lecture_choices_from_array(lecture_array):
 
 for module in module_list:
 
-
     # Split up in choices with the same lecture group like L1, L2 and L3 with common group 2
     if module.filter.lecture_grouping == LectureGroupingEnum.group_by_group:
         choiceList.append(generate_grouped_by_group_choices_from_array(module.lectures))
@@ -105,8 +114,15 @@ for module in module_list:
     elif module.filter.lecture_grouping == LectureGroupingEnum.group_by_lecture_number:
         generated_list = generate_grouped_by_lecture_choices_from_array(module.lectures)
         for choice in generated_list.options:
+
+            # If any of the options in the choice does not fit language choice, don't add it
+            for option in choice:
+                if option.language == 'A' and module.filter.lecture_language == LectureLanguageEnum.english:
+                    choice.remove(option)
+
             new_choice_item = ChoiceListItem(choices=choice)
             choiceList.append(new_choice_item)
+
 
     # Filter tutorials
     if module.filter.tutorial_grouping == LectureGroupingEnum.group_by_group:
@@ -139,6 +155,17 @@ for c in choiceList:
         temp_list.append(c)
 choiceList = temp_list
 
+# Pinocchio event
+pin_choices = ChoiceListItem(choices=[])
+pin_event = TimetableEntry(year=2016, module="pinocchio", language='A', group='1',
+                           lecture_number='L1', semester='2',
+                           day='Thursday',
+                           time_start='7:30:00',
+                           time_end='8:30:00', # 10:30:00 ideal!
+                           venue='Pin Venue')
+pin_choices.options.append(pin_event)
+# choiceList.append(pin_choices)
+
 # item1 = ChoiceListItem(choices=[['A','P'], 'B', 'C'])
 # item2 = ChoiceListItem(choices=['1', '2', '3'])
 # item3 = ChoiceListItem(choices=['X', 'Y', 'Z'])
@@ -146,7 +173,10 @@ choiceList = temp_list
 # choiceList.append(item2)
 # choiceList.append(item3)
 
-print("Generating Children")
+# Monday 16:30
+# Thursday 8:30 <--------
+
+print("Generating Children at " + datetime.now().strftime('%H:%M:%S'))
 rootNode.generate_children(choiceList, 0)
-print("DONE")
+print("DONE at " + datetime.now().strftime('%H:%M:%S'))
 print(Counter.counter)

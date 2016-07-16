@@ -38,8 +38,12 @@ class TimetableEntry(object):
         self.venue = venue
 
     def __str__(self):
-        return self.module + ' ' + self.lecture_number + ', ' + self.day + ' ' + self.time_start + '-' + self.time_end
-
+        #return self.module + ' ' + self.lecture_number + ', ' + self.day + ' ' + self.time_start + '-' + self.time_end
+        return "{} {}({}): {} {}-{}".format(
+            self.module, self.lecture_number, self.language, self.day,
+            str(time.strftime("%H:%M", self.time_start)),
+            str(time.strftime("%H:%M", self.time_end))
+        )
     def is_tutorial(self):
         return self.lecture_number[0] == 'T'
 
@@ -55,20 +59,26 @@ class TimetableEntry(object):
         if other_entry.day != self.day:
             return False
 
-        if (other_entry.time_start == self.time_start and other_entry.time_end == self.time_end):
-            clash = True
+        if other_entry.time_start == self.time_start and other_entry.time_end == self.time_end:
+            return True
 
-        if (self.time_start < other_entry.time_start < self.time_end):
-            clash = True
+        if self.time_start < other_entry.time_start < self.time_end:
+            return True
 
-        if (self.time_start < other_entry.time_end < self.time_end):
-            clash = True
+        if self.time_start < other_entry.time_end < self.time_end:
+            return True
 
-        if (other_entry.time_start > self.time_start and other_entry.time_end < self.time_end):
-            clash = True
+        if other_entry.time_start < self.time_start < other_entry.time_end:
+            return True
 
-        if (self.time_start > other_entry.time_start and self.time_end < other_entry.time_end):
-            clash = True
+        if other_entry.time_start < self.time_end < other_entry.time_end:
+            return True
+
+        if other_entry.time_start > self.time_start and other_entry.time_end < self.time_end:
+            return True
+
+        if self.time_start > other_entry.time_start and self.time_end < other_entry.time_end:
+            return True
 
         return clash
 
@@ -113,10 +123,7 @@ class Choice(object):
     def generate_children(self, choice_list, choice_index):
         if len(choice_list) <= choice_index:
             # Leaf node. Time to navigate back up
-            #print(self.temp_find_root())
             entry_array = self.get_all_chosen_entries()
-
-            # print(len(entry_array))
 
             # Group into days
             entries_grouped = dict()
@@ -125,8 +132,22 @@ class Choice(object):
                     entries_grouped[entry.day].append(entry)
                 else:
                     entries_grouped[entry.day] = [entry]
-            # print("FOUND :'D")
+
+            # Count days after filter time
+            filter_time = time.strptime("16:32", "%H:%M")
+            late_day_counter = 0
+            for day in entries_grouped:
+                latest_time = time.strptime("5:00", "%H:%M")
+                for entry in entries_grouped[day]:
+                    if entry.time_end > latest_time:
+                        latest_time = entry.time_end
+                if latest_time > filter_time:
+                    late_day_counter += 1
+
             Counter.counter += 1
+            if late_day_counter == 1:
+                print("1 day")
+            print(late_day_counter)
             return None
         else:
             # Before we check any more children, we need to

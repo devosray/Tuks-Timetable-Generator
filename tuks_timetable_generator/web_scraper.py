@@ -4,17 +4,19 @@ from bs4 import BeautifulSoup
 from . import configuration
 from .models import TimetableEntry, Module
 
+
 def download_url(url):
     request = urllib.request.Request(url)
-    return urllib.request.urlopen(request)
+    urlopen = urllib.request.urlopen(request)
+    html_data = urlopen.read().decode()
+    file = open("tempWrite.html", 'w')
+    file.write(html_data)
+    file.close()
+    return html_data
 
-# Downloads the timetable from the URL and parse entry into modules
-# Returns array of module objects
-# TODO: Allow different campus timetables
-# TODO: Add more types of lecture types (B, O?)
-def download_and_parse_url(url):
-    html_response = download_url(url)
-    soup = BeautifulSoup(html_response, 'html.parser')
+
+def parse_html(html):
+    soup = BeautifulSoup(html, 'html.parser')
     data_table = soup.find(id="myTable")
     table_body = data_table.find("tbody")
     table_rows = table_body.find_all("tr")
@@ -67,3 +69,10 @@ def download_and_parse_url(url):
 
     return modules_list
 
+
+# Downloads the timetable from the URL and parse entry into modules
+# Returns array of module objects
+# TOD: Allow different campus timetables
+# TOD: Add more types of lecture types (B, O?)
+def download_and_parse_url(url):
+    return parse_html(download_url(url))
